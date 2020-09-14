@@ -21,7 +21,7 @@ class TimeService
     if success?
       [Time.now.strftime(time_params)]
     else
-      ["Unknown time format [#{@unknown_formats.join(", ")}]"] # + help
+      ["Unknown time format [#{@unknown_formats.join(", ")}]"]
     end
   end
 
