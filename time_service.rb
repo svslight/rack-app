@@ -1,31 +1,38 @@
 class TimeService
-  FORMATS = {year: "%Y", month: "%m", day: "%d", hour: "%H", minute: "%M", second: "%S"}.freeze
-  
-  attr_reader :formats, :unknown_formats
+    
+  FORMATS = {
+    'year' => '%Y',
+    'month' => '%m',
+    'day' => '%d',
+    'hour' => '%H',
+    'minute' => '%M',
+    'second' => '%S'
+  }.freeze
 
-  def initialize(input_string)
-    @input_string = input_string
+  def initialize(formats)
+    @formats = formats['format'] ? formats['format'].split(',') : []
+  end
 
-    check_formats
+  def success?
+    unknown_formats.empty? && @formats.any?
   end
 
   def result
-    Time.now.strftime(@formats.join('-'))
+    if success?
+      [Time.now.strftime(time_params)]
+    else
+      ["Unknown time format [#{@unknown_formats.join(", ")}]"] # + help
+    end
   end
 
   private
 
-  def check_formats
-    @formats = []
-    @unknown_formats = []
+  def time_params
+    FORMATS.values_at(*@formats).join('-')
+  end
 
-    @input_string.split(',').each do |format|
-      if FORMATS[format.to_sym]
-        @formats << FORMATS[format.to_sym]
-      else
-        @unknown_formats << format
-      end
-    end
+  def unknown_formats
+    @unknown_formats ||= @formats - FORMATS.keys
   end
 end
   

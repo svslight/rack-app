@@ -3,30 +3,42 @@ require_relative 'time_service'
 class App
 
   def call(env)
-    @request = Rack::Request.new(env)
-    @response = Rack::Response.new
+    request = Rack::Request.new(env)
 
-    if @request.path_info == "/time"
-      time_response(TimeService.new(@request.params["format"]))
+    params = if request.path_info == '/time'
+      request_time(request.params)
     else
-      compose_response(404, "Unknown resource '#{@request.path_info}'\n")
+      # response_compose(404, "Unknown resource '#{request.path_info}'\n")
+      request_404
     end
   end
 
   private
 
-  def compose_response(status, text)
-    @response.status = status
-    @response.write "#{text}"
-    @response.headers['Content-Type'] = 'text/plain'
-    @response.finish
+  def request_404
+    [404, headers, ["Unknown resource.\n\n"]]
   end
 
-  def time_response(handler)
-    if handler.unknown_formats.empty?
-      compose_response(200, "#{handler.result}\n")
+  # def response_compose(status, text)
+  #   @response = Rack::Response.new
+  #   @response.status = status
+  #   @response.write "#{text}"
+  #   @response.headers['Content-Type'] = 'text/plain'
+  #   @response.finish
+  # end
+
+  def headers
+    { 'Content-Type' => 'text/plain' }
+  end
+
+  def request_time(params)
+    time = TimeService.new(params)
+    body = [time.result.join("\n") + "\n\n"]
+
+    if time.success?
+      [200, headers, body]
     else
-      compose_response(400, "Unknown time format #{handler.unknown_formats}\n")
+      [400, headers, body]
     end
   end
 end
